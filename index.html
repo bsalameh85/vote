@@ -264,8 +264,8 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2><i class="fas fa-chart-bar"></i> النتائج المباشرة من Google Sheets</h2>
-                <small style="color: #666;"><i class="fas fa-sync-alt fa-spin"></i> تحديث تلقائي حيي (كل 3 ثوانٍ)</small>
+                <h2><i class="fas fa-users"></i> المرشحين المضافين والنتائج</h2>
+                <small style="color: #666;"><i class="fas fa-sync-alt fa-spin"></i> تحديث تلقائي (كل 3 ثوانٍ)</small>
             </div>
 
             <div id="loadingText" class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</div>
@@ -348,7 +348,7 @@
             const errorMsg = document.getElementById('passwordError');
 
             if (inputVal === ADMIN_PASSWORD) {
-                localStorage.setItem('adminLoggedIn', 'true'); // حفظ جلسة الدخول
+                localStorage.setItem('adminLoggedIn', 'true');
                 showMainContent();
             } else {
                 errorMsg.style.display = 'block';
@@ -366,7 +366,7 @@
         }
 
         function logout() {
-            localStorage.removeItem('adminLoggedIn'); // إزالة جلسة الدخول
+            localStorage.removeItem('adminLoggedIn');
             if (syncInterval) {
                 clearInterval(syncInterval);
                 syncInterval = null;
@@ -377,7 +377,6 @@
             document.getElementById('loginOverlay').style.display = 'flex';
         }
 
-        // التحقق من حالة الدخول المحفوظة فور تحميل الصفحة
         window.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('adminLoggedIn') === 'true') {
                 showMainContent();
@@ -388,12 +387,10 @@
             if (e.key === 'Enter') checkPassword();
         });
 
-        // إلغاء زر الفأرة اليمين
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
-        // حظر أدوات التطوير F12 و اختصارات الفحص
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || 
@@ -403,7 +400,7 @@
         });
 
         // -------------------------------------------------------------
-        // 2. كود لوحة التحكم والتواصل مع Google Sheets
+        // 2. كود لوحة التحكم والتواصل السريع مع Google Sheets
         // -------------------------------------------------------------
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxTYtQqY97iizNUvKjYqwLzgokZMnprO9Q_w8RYYPZFecQCFkDkq769A1XqmSUWfdPC/exec";
         
@@ -462,7 +459,7 @@
                     renderCandidates();
                 }
             } catch (err) {
-                console.error("خطأ في جلب البيانات تلقائياً:", err);
+                console.error("خطأ في جلب البيانات:", err);
             }
         }
 
@@ -490,7 +487,7 @@
                         <span class="candidate-class">${c.candidateClass}</span>
                         <span class="candidate-gender-badge ${genderClass}">${genderText}</span>
                     </div>
-                    <div class="candidate-votes" style="margin-top:0.5rem;"><i class="fas fa-vote-yea"></i> ${c.votes} صوت</div>
+                    <div class="candidate-votes" style="margin-top:0.5rem;"><i class="fas fa-vote-yea"></i> ${c.votes || 0} صوت</div>
                     <div class="card-actions">
                         <button class="btn-sm btn-edit" onclick="openEditModal('${c.id}')"><i class="fas fa-edit"></i> تعديل</button>
                         <button class="btn-sm btn-delete" onclick="deleteCandidate('${c.id}')"><i class="fas fa-trash"></i> حذف</button>
@@ -500,11 +497,9 @@
             });
         }
 
-        document.getElementById('addCandidateForm').addEventListener('submit', async function(e) {
+        // إضافة مرشح جديدة فورة (تسريع الاستجابة)
+        document.getElementById('addCandidateForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "جاري الحفظ...";
 
             const name = document.getElementById('candidateName').value.trim();
             const candidateClass = document.getElementById('candidateClass').value;
@@ -517,20 +512,25 @@
                 name: name,
                 candidateClass: candidateClass,
                 gender: gender,
-                image: finalImage
+                image: finalImage,
+                votes: 0
             };
 
-            await fetch(GOOGLE_SHEET_API_URL, {
-                method: "POST",
-                body: JSON.stringify(newCandidate)
-            });
+            // إدراج مباشر في الواجهة فوراً لتسريع العملية
+            candidates.unshift(newCandidate);
+            document.getElementById('loadingText').style.display = 'none';
+            renderCandidates();
 
+            // تفريغ النموذج
             this.reset();
             uploadedAddBase64Image = "";
-            document.getElementById('imgPreview').style.display = 'none';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-user-plus"></i> إضافة مرشح/ة';
-            fetchCandidatesSilently();
+            updateDefaultImagePreview('add');
+
+            // الإرسال لخادم جوجل في الخلفية
+            fetch(GOOGLE_SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify(newCandidate)
+            }).catch(err => console.error("خطأ أثناء الحفظ:", err));
         });
 
         function openEditModal(candidateId) {
@@ -558,18 +558,27 @@
             document.getElementById('editModal').style.display = 'none';
         }
 
-        document.getElementById('editCandidateForm').addEventListener('submit', async function(e) {
+        // حفظ التعديل فوراً بالواجهة
+        document.getElementById('editCandidateForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const saveBtn = document.getElementById('saveEditBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerText = "جاري التحديث...";
 
             const id = document.getElementById('editCandidateId').value;
             const name = document.getElementById('editCandidateName').value.trim();
             const candidateClass = document.getElementById('editCandidateClass').value;
             const gender = document.getElementById('editCandidateGender').value;
 
-            const finalImg = uploadedEditBase64Image || getDefaultAvatar(gender);
+            const target = candidates.find(c => c.id == id);
+            const finalImg = uploadedEditBase64Image || (target ? target.image : getDefaultAvatar(gender));
+
+            if (target) {
+                target.name = name;
+                target.candidateClass = candidateClass;
+                target.gender = gender;
+                target.image = finalImg;
+                renderCandidates();
+            }
+
+            closeEditModal();
 
             const editPayload = {
                 action: "edit",
@@ -580,36 +589,34 @@
                 image: finalImg
             };
 
-            await fetch(GOOGLE_SHEET_API_URL, {
+            // الإرسال الخلفي لجوجل شيت
+            fetch(GOOGLE_SHEET_API_URL, {
                 method: "POST",
                 body: JSON.stringify(editPayload)
-            });
-
-            saveBtn.disabled = false;
-            saveBtn.innerText = "حفظ التغييرات";
-            closeEditModal();
-            fetchCandidatesSilently();
+            }).catch(err => console.error("خطأ بالتحديث:", err));
         });
 
         async function deleteCandidate(candidateId) {
             if (confirm("هل أنت تأكد من حذف هذا المرشح نهائياً؟")) {
-                document.getElementById('loadingText').style.display = 'block';
+                candidates = candidates.filter(c => c.id != candidateId);
+                renderCandidates();
+
                 await fetch(GOOGLE_SHEET_API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "delete", id: candidateId })
                 });
-                fetchCandidatesSilently();
             }
         }
 
         async function resetVotes() {
             if (confirm("هل أنت تأكد من تصفير جميع الأصوات في Google Sheets؟")) {
-                document.getElementById('loadingText').style.display = 'block';
+                candidates.forEach(c => c.votes = 0);
+                renderCandidates();
+
                 await fetch(GOOGLE_SHEET_API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "reset" })
                 });
-                fetchCandidatesSilently();
             }
         }
 
