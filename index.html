@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشة التصويت - Google Sheets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; --success-color: #2ecc71; --light-bg: #f8f9fa; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--light-bg); color: #333; padding-bottom: 60px; }
+        header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; text-align: center; padding: 2rem 1rem; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-top: 5px solid var(--success-color); }
+        .form-group select { width: 100%; max-width: 400px; margin: 0 auto; display: block; padding: 0.8rem; border: 2px solid #ccc; border-radius: 10px; font-size: 1rem; }
+        .voting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .voting-card { background: white; border-radius: 16px; padding: 1.5rem; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border: 2px solid #eee; cursor: pointer; transition: 0.3s; }
+        .voting-card:hover { border-color: var(--success-color); transform: translateY(-5px); }
+        .voting-card-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem; border: 4px solid var(--accent-color); }
+        .vote-btn-click { background-color: var(--success-color); color: white; padding: 0.8rem; border-radius: 30px; font-weight: bold; margin-top: 1rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 2.5rem; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; }
+        .btn-modal { width: 100%; padding: 0.8rem; border: none; border-radius: 8px; background-color: var(--success-color); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-check-circle"></i> شاشة التصويت للطلاب</h1>
+        <p>اختر صفك ثم انقر على صورة المرشح للتصويت له مباشرة</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="form-group">
+                <label style="display:block; text-align:center; font-weight:bold; margin-bottom:0.5rem;"><i class="fas fa-graduation-cap"></i> اختر صفك أولاً:</label>
+                <select id="selectedClassSelect" onchange="loadVotingCandidates()">
+                    <option value="">-- جاري التحميل... --</option>
+                </select>
+            </div>
+
+            <div id="votingArea">
+                <p style="text-align: center; color: #777; font-size: 1.1rem; margin-top: 2rem;">
+                    يرجى تحديد الصف من القائمة أعلاه لإظهار المرشحين.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد التصويت -->
+    <div class="modal" id="voteSuccessModal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--success-color); margin-bottom: 1rem;"></i>
+            <h2 style="color: #2c3e50; margin-bottom: 0.5rem;">تم تسجيل صوتك بنجاح!</h2>
+            <p style="color: #666;">تم تحديث Google Sheets فوراً.</p>
+            <button class="btn-modal" onclick="closeModal()">التالي (الطالب التالي)</button>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxTYtQqY97iizNUvKjYqwLzgokZMnprO9Q_w8RYYPZFecQCFkDkq769A1XqmSUWfdPC/exec";
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+        let candidates = [];
+
+        async function fetchCandidates() {
+            try {
+                const res = await fetch(GOOGLE_SHEET_API_URL);
+                candidates = await res.json();
+                updateClassDropdown();
+            } catch (err) {
+                console.error("خطأ في جلب المرشحين:", err);
+            }
+        }
+
+        function updateClassDropdown() {
+            const selectedClassSelect = document.getElementById('selectedClassSelect');
+            const currentSelected = selectedClassSelect.value;
+            const classes = [...new Set(candidates.map(c => c.candidateClass))];
+
+            selectedClassSelect.innerHTML = '<option value="">-- اضغط لاختيار الصف --</option>';
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                if (cls === currentSelected) option.selected = true;
+                selectedClassSelect.appendChild(option);
+            });
+        }
+
+        function loadVotingCandidates() {
+            const selectedClass = document.getElementById('selectedClassSelect').value;
+            const votingArea = document.getElementById('votingArea');
+            votingArea.innerHTML = '';
+
+            if (!selectedClass) {
+                votingArea.innerHTML = `<p style="text-align: center; color: #777; margin-top: 2rem;">يرجى تحديد الصف أولاً.</p>`;
+                return;
+            }
+
+            const classCandidates = candidates.filter(c => c.candidateClass === selectedClass);
+
+            if (classCandidates.length === 0) {
+                votingArea.innerHTML = `<p style="text-align: center; color: #e74c3c; margin-top: 2rem;">لا يوجد مرشحون لصف (${selectedClass}).</p>`;
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'voting-grid';
+
+            classCandidates.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'voting-card';
+                card.onclick = () => castVote(c.id);
+
+                card.innerHTML = `
+                    <img src="${c.image || defaultAvatar}" class="voting-card-img" alt="${c.name}">
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #2c3e50;">${c.name}</div>
+                    <div style="font-size: 0.9rem; color: #777; margin-top: 0.3rem;">مرشح ${c.candidateClass}</div>
+                    <div class="vote-btn-click"><i class="fas fa-hand-pointer"></i> اضغط هنا للتصويت</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            votingArea.appendChild(grid);
+        }
+
+        async function castVote(candidateId) {
+            document.getElementById('votingArea').style.opacity = '0.5';
+            
+            await fetch(GOOGLE_SHEET_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "vote", id: candidateId })
+            });
+
+            document.getElementById('votingArea').style.opacity = '1';
+            document.getElementById('voteSuccessModal').style.display = 'flex';
+            
+            fetchCandidates();
+        }
+
+        function closeModal() {
+            document.getElementById('voteSuccessModal').style.display = 'none';
+        }
+
+        fetchCandidates();
+    </script>
+</body>
+</html>
