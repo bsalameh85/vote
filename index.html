@@ -209,7 +209,21 @@
                         </div>
                         <div class="form-group">
                             <label>الصف / الشعبة:</label>
-                            <input type="text" id="candidateClass" required placeholder="مثال: العاشر (أ)">
+                            <select id="candidateClass" required>
+                                <option value="" disabled selected>اختر الصف والشعبة</option>
+                                <option value="الصف الرابع (أ)">الصف الرابع (أ)</option>
+                                <option value="الصف الرابع (ب)">الصف الرابع (ب)</option>
+                                <option value="الصف الخامس (أ)">الصف الخامس (أ)</option>
+                                <option value="الصف الخامس (ب)">الصف الخامس (ب)</option>
+                                <option value="الصف السادس (أ)">الصف السادس (أ)</option>
+                                <option value="الصف السادس (ب)">الصف السادس (ب)</option>
+                                <option value="الصف السابع (أ)">الصف السابع (أ)</option>
+                                <option value="الصف السابع (ب)">الصف السابع (ب)</option>
+                                <option value="الصف الثامن (أ)">الصف الثامن (أ)</option>
+                                <option value="الصف الثامن (ب)">الصف الثامن (ب)</option>
+                                <option value="الصف التاسع (أ)">الصف التاسع (أ)</option>
+                                <option value="الصف التاسع (ب)">الصف التاسع (ب)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>جنس المرشح:</label>
@@ -226,7 +240,7 @@
                         <img id="imgPreview" class="image-preview" alt="معاينة الصورة">
                     </div>
 
-                    <button type="submit" class="btn" id="submitBtn"><i class="fas fa-plus-circle"></i> إضافة إلى Google Sheets</button>
+                    <button type="submit" class="btn" id="submitBtn"><i class="fas fa-user-plus"></i> إضافة مرشح/ة</button>
                 </form>
             </div>
 
@@ -256,7 +270,20 @@
                     </div>
                     <div class="form-group">
                         <label>الصف / الشعبة:</label>
-                        <input type="text" id="editCandidateClass" required>
+                        <select id="editCandidateClass" required>
+                            <option value="الصف الرابع (أ)">الصف الرابع (أ)</option>
+                            <option value="الصف الرابع (ب)">الصف الرابع (ب)</option>
+                            <option value="الصف الخامس (أ)">الصف الخامس (أ)</option>
+                            <option value="الصف الخامس (ب)">الصف الخامس (ب)</option>
+                            <option value="الصف السادس (أ)">الصف السادس (أ)</option>
+                            <option value="الصف السادس (ب)">الصف السادس (ب)</option>
+                            <option value="الصف السابع (أ)">الصف السابع (أ)</option>
+                            <option value="الصف السابع (ب)">الصف السابع (ب)</option>
+                            <option value="الصف الثامن (أ)">الصف الثامن (أ)</option>
+                            <option value="الصف الثامن (ب)">الصف الثامن (ب)</option>
+                            <option value="الصف التاسع (أ)">الصف التاسع (أ)</option>
+                            <option value="الصف التاسع (ب)">الصف التاسع (ب)</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>جنس المرشح:</label>
@@ -438,7 +465,7 @@
             btn.innerText = "جاري الحفظ...";
 
             const name = document.getElementById('candidateName').value.trim();
-            const candidateClass = document.getElementById('candidateClass').value.trim();
+            const candidateClass = document.getElementById('candidateClass').value;
             const gender = document.getElementById('candidateGender').value;
             const finalImage = uploadedAddBase64Image || getDefaultAvatar(gender);
 
@@ -460,7 +487,7 @@
             uploadedAddBase64Image = "";
             document.getElementById('imgPreview').style.display = 'none';
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus-circle"></i> إضافة إلى Google Sheets';
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> إضافة مرشح/ة';
             fetchCandidatesSilently();
         });
 
@@ -497,7 +524,7 @@
 
             const id = document.getElementById('editCandidateId').value;
             const name = document.getElementById('editCandidateName').value.trim();
-            const candidateClass = document.getElementById('editCandidateClass').value.trim();
+            const candidateClass = document.getElementById('editCandidateClass').value;
             const gender = document.getElementById('editCandidateGender').value;
 
             const finalImg = uploadedEditBase64Image || getDefaultAvatar(gender);
