@@ -10,7 +10,6 @@
         :root { --primary-color: #1e3c72; --accent-color: #3498db; --success-color: #2ecc71; --light-bg: #f8f9fa; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         
-        /* تعطيل التحديد بالنص لإضافة حماية أعمق */
         body { 
             background-color: var(--light-bg); 
             color: #333; 
@@ -44,11 +43,25 @@
             text-align: center;
             max-width: 400px;
             width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .login-card h2 {
             color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .login-card input {
@@ -152,11 +165,11 @@
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول بكلمة المرور -->
+    <!-- شاشة تسجيل الدخول بكلمة المرور وشعار المدرسة -->
     <div id="loginOverlay">
         <div class="login-card">
-            <i class="fas fa-user-shield" style="font-size: 3rem; color: #1e3c72; margin-bottom: 1rem;"></i>
-            <h2>نظام التصويت للانتخابات الطلابية</h2>
+            <img src="logo.png" alt="شعار مدرسة آل البيت" class="login-logo" onerror="this.style.display='none'">
+            <h2>مدرسة آل البيت</h2>
             <p style="color: #666; font-size: 0.9rem;">الرجاء إدخال كلمة المرور للمتابعة</p>
             <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
             <button class="btn" onclick="checkPassword()"><i class="fas fa-lock-open"></i> دخول</button>
@@ -277,7 +290,7 @@
         // -------------------------------------------------------------
         // 1. نظام الحماية وإلغاء زر الفأرة الأيمن
         // -------------------------------------------------------------
-        const ADMIN_PASSWORD = "1234"; // <-- يمكنك تغيير كلمة المرور من هنا
+        const ADMIN_PASSWORD = "1234"; // كلمة المرور الافتراضية
 
         function checkPassword() {
             const inputVal = document.getElementById('adminPasswordInput').value;
@@ -286,7 +299,6 @@
             if (inputVal === ADMIN_PASSWORD) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'flex';
-                // بدء جلب البيانات بعد تسجيل الدخول الصحيح
                 updateDefaultImagePreview('add');
                 fetchCandidatesSilently();
                 setInterval(fetchCandidatesSilently, 3000);
@@ -295,17 +307,14 @@
             }
         }
 
-        // السماح بالضغط على زر Enter عند إدخال كلمة المرور
         document.getElementById('adminPasswordInput').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
 
-        // إلغاء زر الفأرة اليمين
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
-        // حظر أزرار أدوات التطوير F12 و Ctrl+Shift+I و Ctrl+U
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || 
