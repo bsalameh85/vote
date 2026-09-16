@@ -100,7 +100,31 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            position: relative;
         }
+
+        .logout-btn-header {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn-header:hover {
+            background: #c0392b;
+        }
+
         .header-logo {
             width: 85px;
             height: 85px;
@@ -190,6 +214,7 @@
     <!-- المحتوى الرئيسي للنظام -->
     <div id="mainContent">
         <header>
+            <button class="logout-btn-header" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
             <img src="logo.png" alt="شعار مدرسة آل البيت" class="header-logo" onerror="this.style.display='none'">
             <h1>مدرسة آل البيت</h1>
             <p>لوحة التحكم والنتائج المباشرة للانتخابات الطلابية</p>
@@ -208,21 +233,15 @@
                             <input type="text" id="candidateName" required placeholder="اسم الطالب / الطالبة">
                         </div>
                         <div class="form-group">
-                            <label>الصف / الشعبة:</label>
+                            <label>الصف الدراسي:</label>
                             <select id="candidateClass" required>
-                                <option value="" disabled selected>اختر الصف والشعبة</option>
-                                <option value="الصف الرابع (أ)">الصف الرابع (أ)</option>
-                                <option value="الصف الرابع (ب)">الصف الرابع (ب)</option>
-                                <option value="الصف الخامس (أ)">الصف الخامس (أ)</option>
-                                <option value="الصف الخامس (ب)">الصف الخامس (ب)</option>
-                                <option value="الصف السادس (أ)">الصف السادس (أ)</option>
-                                <option value="الصف السادس (ب)">الصف السادس (ب)</option>
-                                <option value="الصف السابع (أ)">الصف السابع (أ)</option>
-                                <option value="الصف السابع (ب)">الصف السابع (ب)</option>
-                                <option value="الصف الثامن (أ)">الصف الثامن (أ)</option>
-                                <option value="الصف الثامن (ب)">الصف الثامن (ب)</option>
-                                <option value="الصف التاسع (أ)">الصف التاسع (أ)</option>
-                                <option value="الصف التاسع (ب)">الصف التاسع (ب)</option>
+                                <option value="" disabled selected>اختر الصف</option>
+                                <option value="الصف الرابع">الصف الرابع</option>
+                                <option value="الصف الخامس">الصف الخامس</option>
+                                <option value="الصف السادس">الصف السادس</option>
+                                <option value="الصف السابع">الصف السابع</option>
+                                <option value="الصف الثامن">الصف الثامن</option>
+                                <option value="الصف التاسع">الصف التاسع</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -269,20 +288,14 @@
                         <input type="text" id="editCandidateName" required>
                     </div>
                     <div class="form-group">
-                        <label>الصف / الشعبة:</label>
+                        <label>الصف الدراسي:</label>
                         <select id="editCandidateClass" required>
-                            <option value="الصف الرابع (أ)">الصف الرابع (أ)</option>
-                            <option value="الصف الرابع (ب)">الصف الرابع (ب)</option>
-                            <option value="الصف الخامس (أ)">الصف الخامس (أ)</option>
-                            <option value="الصف الخامس (ب)">الصف الخامس (ب)</option>
-                            <option value="الصف السادس (أ)">الصف السادس (أ)</option>
-                            <option value="الصف السادس (ب)">الصف السادس (ب)</option>
-                            <option value="الصف السابع (أ)">الصف السابع (أ)</option>
-                            <option value="الصف السابع (ب)">الصف السابع (ب)</option>
-                            <option value="الصف الثامن (أ)">الصف الثامن (أ)</option>
-                            <option value="الصف الثامن (ب)">الصف الثامن (ب)</option>
-                            <option value="الصف التاسع (أ)">الصف التاسع (أ)</option>
-                            <option value="الصف التاسع (ب)">الصف التاسع (ب)</option>
+                            <option value="الصف الرابع">الصف الرابع</option>
+                            <option value="الصف الخامس">الصف الخامس</option>
+                            <option value="الصف السادس">الصف السادس</option>
+                            <option value="الصف السابع">الصف السابع</option>
+                            <option value="الصف الثامن">الصف الثامن</option>
+                            <option value="الصف التاسع">الصف التاسع</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -310,7 +323,7 @@
             <div class="modal-content">
                 <div style="font-size: 3.5rem; color: #f1c40f;"><i class="fas fa-crown"></i></div>
                 <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">قائمة الفائزين بالانتخابات الطلابية</h2>
-                <p style="color: #666; font-size: 0.95rem;">الفائز بالأعلى تصويتاً عن كل صف وشعبة</p>
+                <p style="color: #666; font-size: 0.95rem;">الفائز بالأعلى تصويتاً عن كل صف دراسي</p>
 
                 <div class="winners-grid" id="winnersContainer"></div>
 
@@ -325,33 +338,62 @@
 
     <script>
         // -------------------------------------------------------------
-        // 1. نظام الحماية وإلغاء زر الفأرة الأيمن
+        // 1. نظام الحماية وتسجيل الدخول والخروج مع حفظ الجلسة
         // -------------------------------------------------------------
         const ADMIN_PASSWORD = "1234"; // كلمة المرور الافتراضية
+        let syncInterval = null;
 
         function checkPassword() {
             const inputVal = document.getElementById('adminPasswordInput').value;
             const errorMsg = document.getElementById('passwordError');
 
             if (inputVal === ADMIN_PASSWORD) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'flex';
-                updateDefaultImagePreview('add');
-                fetchCandidatesSilently();
-                setInterval(fetchCandidatesSilently, 3000);
+                localStorage.setItem('adminLoggedIn', 'true'); // حفظ جلسة الدخول
+                showMainContent();
             } else {
                 errorMsg.style.display = 'block';
             }
         }
 
+        function showMainContent() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+            updateDefaultImagePreview('add');
+            fetchCandidatesSilently();
+            if (!syncInterval) {
+                syncInterval = setInterval(fetchCandidatesSilently, 3000);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminLoggedIn'); // إزالة جلسة الدخول
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+            }
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        // التحقق من حالة الدخول المحفوظة فور تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                showMainContent();
+            }
+        });
+
         document.getElementById('adminPasswordInput').addEventListener('keyup', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
 
+        // إلغاء زر الفأرة اليمين
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         });
 
+        // حظر أدوات التطوير F12 و اختصارات الفحص
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || 
