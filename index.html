@@ -497,7 +497,7 @@
             });
         }
 
-        // إضافة مرشح جديدة فورة (تسريع الاستجابة)
+        // إضافة مرشح جديدة فوراً (تطبيق الاستجابة الفورية)
         document.getElementById('addCandidateForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -516,7 +516,7 @@
                 votes: 0
             };
 
-            // إدراج مباشر في الواجهة فوراً لتسريع العملية
+            // إدراج مباشر في الواجهة فوراً
             candidates.unshift(newCandidate);
             document.getElementById('loadingText').style.display = 'none';
             renderCandidates();
@@ -620,9 +620,11 @@
             }
         }
 
+        // دالة إعلان الفائزين حسب الصفوف مع التعامل العدلي مع حالة التعادل
         function announceWinnerByClass() {
             if (candidates.length === 0) return alert('لا يوجد مرشحون!');
 
+            // تجميع المرشحين حسب الصف
             const groupedByClass = {};
             candidates.forEach(c => {
                 const className = c.candidateClass.trim();
@@ -636,25 +638,38 @@
 
             Object.keys(groupedByClass).forEach(className => {
                 const classCandidates = groupedByClass[className];
-                classCandidates.sort((a, b) => b.votes - a.votes);
                 
-                const winner = classCandidates[0];
-                
-                if (winner && winner.votes > 0) {
-                    hasVotes = true;
-                    const gender = winner.gender || 'male';
-                    const avatar = winner.image || getDefaultAvatar(gender);
+                // معرفة أعلى عدد أصوات في هذا الصف
+                const maxVotes = Math.max(...classCandidates.map(c => c.votes || 0));
 
-                    const winnerCard = document.createElement('div');
-                    winnerCard.className = 'winner-card';
-                    winnerCard.innerHTML = `
-                        <div class="winner-badge"><i class="fas fa-medal"></i> الأول</div>
-                        <div class="winner-class-title">${className}</div>
-                        <img src="${avatar}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1c40f; margin: 0.5rem 0;">
-                        <div style="font-weight: bold; font-size: 1.1rem; color: #1e3c72;">${winner.name}</div>
-                        <div style="color: #3498db; font-weight: bold; font-size: 0.95rem; margin-top: 5px;"><i class="fas fa-vote-yea"></i> ${winner.votes} صوت</div>
-                    `;
-                    winnersContainer.appendChild(winnerCard);
+                // التأكد من وجود أصوات أكبر من صفر
+                if (maxVotes > 0) {
+                    hasVotes = true;
+
+                    // الحصول على جميع المرشحين الحاصلين على أعلى عدد أصوات (للتعامل مع حالة التعادل)
+                    const topCandidates = classCandidates.filter(c => (c.votes || 0) === maxVotes);
+
+                    topCandidates.forEach(winner => {
+                        const gender = winner.gender || 'male';
+                        const avatar = winner.image || getDefaultAvatar(gender);
+                        
+                        // تخصيص نص وستايل الشارة في حال التعادل
+                        const badgeText = topCandidates.length > 1 ? 'تعادل (الأول)' : 'الأول';
+                        const badgeStyle = topCandidates.length > 1 ? 'background: #e67e22;' : '';
+
+                        const winnerCard = document.createElement('div');
+                        winnerCard.className = 'winner-card';
+                        winnerCard.innerHTML = `
+                            <div class="winner-badge" style="${badgeStyle}">
+                                <i class="fas fa-medal"></i> ${badgeText}
+                            </div>
+                            <div class="winner-class-title">${className}</div>
+                            <img src="${avatar}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1c40f; margin: 0.5rem 0;">
+                            <div style="font-weight: bold; font-size: 1.1rem; color: #1e3c72;">${winner.name}</div>
+                            <div style="color: #3498db; font-weight: bold; font-size: 0.95rem; margin-top: 5px;"><i class="fas fa-vote-yea"></i> ${winner.votes} صوت</div>
+                        `;
+                        winnersContainer.appendChild(winnerCard);
+                    });
                 }
             });
 
