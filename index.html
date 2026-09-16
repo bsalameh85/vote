@@ -49,7 +49,7 @@
         .candidate-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 0.8rem; border: 3px solid var(--accent-color); }
         .candidate-name { font-weight: bold; font-size: 1.1rem; color: var(--primary-color); }
         .candidate-class { font-size: 0.85rem; color: #666; background: #eef2f5; display: inline-block; padding: 2px 10px; border-radius: 12px; margin: 0.4rem 0; }
-        .candidate-votes { font-size: 1.2rem; color: var(--accent-color); font-weight: bold; background: #eef7fc; padding: 0.4rem; border-radius: 20px; margin-bottom: 0.8rem; }
+        .candidate-votes { font-size: 1.2rem; color: var(--accent-color); font-weight: bold; background: #eef7fc; padding: 0.4rem; border-radius: 20px; margin-bottom: 0.8rem; transition: all 0.3s ease; }
         
         /* أزرار التحكم في الكرت */
         .card-actions { display: flex; gap: 8px; justify-content: center; margin-top: 0.5rem; }
@@ -60,11 +60,17 @@
         .finish-section { text-align: center; margin: 2rem 0; display: flex; gap: 15px; justify-content: center; }
         .finish-section .btn { width: auto; padding: 1rem 2rem; border-radius: 30px; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 2rem; border-radius: 20px; text-align: center; max-width: 450px; width: 90%; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; overflow-y: auto; padding: 20px; }
+        .modal-content { background: white; padding: 2rem; border-radius: 20px; text-align: center; max-width: 650px; width: 95%; max-height: 90vh; overflow-y: auto; }
         .loading { text-align: center; font-size: 1.2rem; color: #666; margin: 2rem 0; }
         
         .image-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; margin: 10px auto; border: 2px solid var(--accent-color); }
+
+        /* تنسيقات كروت الفائزين حسب الصف */
+        .winners-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: center; }
+        .winner-card { background: #fffdf0; border: 2px solid #f1c40f; border-radius: 15px; padding: 1rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .winner-badge { position: absolute; top: -12px; right: 50%; transform: translateX(50%); background: #f1c40f; color: #fff; padding: 2px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .winner-class-title { font-weight: bold; color: var(--primary-color); font-size: 1.1rem; margin-top: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px dashed #ddd; padding-bottom: 0.3rem; }
     </style>
 </head>
 <body>
@@ -100,12 +106,16 @@
             </form>
         </div>
 
-        <h2><i class="fas fa-chart-bar"></i> النتائج المباشرة من Google Sheets</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2><i class="fas fa-chart-bar"></i> النتائج المباشرة من Google Sheets</h2>
+            <small style="color: #666;"><i class="fas fa-sync-alt fa-spin"></i> تحديث تلقائي حيي (كل 3 ثوانٍ)</small>
+        </div>
+
         <div id="loadingText" class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</div>
         <div class="candidates-list" id="candidatesList"></div>
 
         <div class="finish-section">
-            <button class="btn btn-success" onclick="announceWinner()"><i class="fas fa-trophy"></i> إعلان الفائز</button>
+            <button class="btn btn-success" onclick="announceWinnerByClass()"><i class="fas fa-trophy"></i> إعلان الفائزين حسب الصفوف</button>
             <button class="btn btn-danger" onclick="resetVotes()"><i class="fas fa-redo"></i> تصفير الأصوات</button>
         </div>
     </div>
@@ -137,15 +147,18 @@
         </div>
     </div>
 
-    <!-- نافذة إعلان الفائز -->
+    <!-- نافذة إعلان الفائزين حسب الصف -->
     <div class="modal" id="winnerModal">
         <div class="modal-content">
-            <div style="font-size: 4rem; color: #f1c40f;"><i class="fas fa-crown"></i></div>
-            <img src="" id="winnerModalImg" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 5px solid #f1c40f; margin: 1rem 0;">
-            <div id="winnerModalName" style="font-size: 2rem; color: #1e3c72; font-weight: bold;"></div>
-            <div id="winnerModalClass" style="color: #555; margin-bottom: 0.8rem;"></div>
-            <div id="winnerModalVotes" style="font-size: 1.2rem; color: #3498db; font-weight: bold; margin-bottom: 1.5rem;"></div>
-            <button class="btn" onclick="document.getElementById('winnerModal').style.display='none'">إغلاق</button>
+            <div style="font-size: 3.5rem; color: #f1c40f;"><i class="fas fa-crown"></i></div>
+            <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">قائمة الفائزين بالانتخابات الطلابية</h2>
+            <p style="color: #666; font-size: 0.95rem;">الفائز بالأعلى تصويتاً عن كل صف وشعبة</p>
+
+            <div class="winners-grid" id="winnersContainer">
+                <!-- يتم تعبئته ديناميكياً -->
+            </div>
+
+            <button class="btn" style="margin-top: 2rem;" onclick="document.getElementById('winnerModal').style.display='none'">إغلاق</button>
         </div>
     </div>
 
@@ -153,6 +166,7 @@
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxTYtQqY97iizNUvKjYqwLzgokZMnprO9Q_w8RYYPZFecQCFkDkq769A1XqmSUWfdPC/exec";
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
         let candidates = [];
+        let isEditing = false;
         let uploadedAddBase64Image = "";
         let uploadedEditBase64Image = "";
 
@@ -172,24 +186,35 @@
             }
         }
 
-        async function fetchCandidates() {
+        // جلب البيانات بدون إعادة رسم الصفحة كاملة في حال عدم التغير
+        async function fetchCandidatesSilently() {
+            if (isEditing) return; // عدم التحديث أثناء التعديل لتجنب خربطة الإدخال
+
             try {
                 const res = await fetch(GOOGLE_SHEET_API_URL);
-                candidates = await res.json();
+                const newData = await res.json();
+                
                 document.getElementById('loadingText').style.display = 'none';
-                renderCandidates();
+
+                // التأكد مما إذا كانت هناك تغييرات
+                if (JSON.stringify(newData) !== JSON.stringify(candidates)) {
+                    candidates = newData;
+                    renderCandidates();
+                }
             } catch (err) {
-                console.error("خطأ في جلب البيانات:", err);
+                console.error("خطأ في جلب البيانات تلقائياً:", err);
             }
         }
 
         function renderCandidates() {
             const candidatesList = document.getElementById('candidatesList');
             candidatesList.innerHTML = '';
+
             if (candidates.length === 0) {
                 candidatesList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #777;">لا يوجد مرشحين حتى الآن.</p>';
                 return;
             }
+
             [...candidates].sort((a, b) => b.votes - a.votes).forEach(c => {
                 const card = document.createElement('div');
                 card.className = 'candidate-card';
@@ -199,8 +224,8 @@
                     <div class="candidate-class">${c.candidateClass}</div>
                     <div class="candidate-votes"><i class="fas fa-vote-yea"></i> ${c.votes} صوت</div>
                     <div class="card-actions">
-                        <button class="btn-sm btn-edit" onclick="openEditModal(${c.id})"><i class="fas fa-edit"></i> تعديل</button>
-                        <button class="btn-sm btn-delete" onclick="deleteCandidate(${c.id})"><i class="fas fa-trash"></i> حذف</button>
+                        <button class="btn-sm btn-edit" onclick="openEditModal('${c.id}')"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn-sm btn-delete" onclick="deleteCandidate('${c.id}')"><i class="fas fa-trash"></i> حذف</button>
                     </div>
                 `;
                 candidatesList.appendChild(card);
@@ -236,11 +261,12 @@
             document.getElementById('imgPreview').style.display = 'none';
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-plus-circle"></i> إضافة إلى Google Sheets';
-            fetchCandidates();
+            fetchCandidatesSilently();
         });
 
         // فتح نافذة التعديل
         function openEditModal(candidateId) {
+            isEditing = true;
             const candidate = candidates.find(c => c.id == candidateId);
             if (!candidate) return;
 
@@ -251,12 +277,13 @@
             const preview = document.getElementById('editImgPreview');
             preview.src = candidate.image || defaultAvatar;
             preview.style.display = 'block';
-            uploadedEditBase64Image = ""; // تصفير الصورة الجديدة ما لم يتم اختيار صورة أخرى
+            uploadedEditBase64Image = "";
 
             document.getElementById('editModal').style.display = 'flex';
         }
 
         function closeEditModal() {
+            isEditing = false;
             document.getElementById('editModal').style.display = 'none';
         }
 
@@ -276,7 +303,7 @@
                 id: id,
                 name: name,
                 candidateClass: candidateClass,
-                image: uploadedEditBase64Image // ستكون فارغة إذا لم يختر صورة جديدة
+                image: uploadedEditBase64Image
             };
 
             await fetch(GOOGLE_SHEET_API_URL, {
@@ -287,7 +314,7 @@
             saveBtn.disabled = false;
             saveBtn.innerText = "حفظ التغييرات";
             closeEditModal();
-            fetchCandidates();
+            fetchCandidatesSilently();
         });
 
         // حذف مرشح
@@ -298,7 +325,7 @@
                     method: "POST",
                     body: JSON.stringify({ action: "delete", id: candidateId })
                 });
-                fetchCandidates();
+                fetchCandidatesSilently();
             }
         }
 
@@ -310,26 +337,62 @@
                     method: "POST",
                     body: JSON.stringify({ action: "reset" })
                 });
-                fetchCandidates();
+                fetchCandidatesSilently();
             }
         }
 
-        // إعلان الفائز
-        function announceWinner() {
+        // إعلان الفائزين مقسمين حسب كل صف وشعبة
+        function announceWinnerByClass() {
             if (candidates.length === 0) return alert('لا يوجد مرشحون!');
-            let winner = candidates.reduce((max, c) => c.votes > max.votes ? c : max, candidates[0]);
-            if (winner.votes === 0) return alert('لم يتم التصويت لأي مرشح بعد!');
 
-            document.getElementById('winnerModalImg').src = winner.image || defaultAvatar;
-            document.getElementById('winnerModalName').innerText = winner.name;
-            document.getElementById('winnerModalClass').innerText = `الصف: ${winner.candidateClass}`;
-            document.getElementById('winnerModalVotes').innerText = `إجمالي الأصوات: ${winner.votes} صوت`;
+            // تجميع المرشحين حسب الصف
+            const groupedByClass = {};
+            candidates.forEach(c => {
+                const className = c.candidateClass.trim();
+                if (!groupedByClass[className]) {
+                    groupedByClass[className] = [];
+                }
+                groupedByClass[className].push(c);
+            });
+
+            const winnersContainer = document.getElementById('winnersContainer');
+            winnersContainer.innerHTML = '';
+            let hasVotes = false;
+
+            // اختيار الأعلى تصويتاً من كل صف
+            Object.keys(groupedByClass).forEach(className => {
+                const classCandidates = groupedByClass[className];
+                // ترتيب مرشحي الصف حسب الأصوات
+                classCandidates.sort((a, b) => b.votes - a.votes);
+                
+                const winner = classCandidates[0]; // الفائز بالمرتبة الأولى للصف
+                
+                if (winner && winner.votes > 0) {
+                    hasVotes = true;
+                    const winnerCard = document.createElement('div');
+                    winnerCard.className = 'winner-card';
+                    winnerCard.innerHTML = `
+                        <div class="winner-badge"><i class="fas fa-medal"></i> الأول</div>
+                        <div class="winner-class-title">${className}</div>
+                        <img src="${winner.image || defaultAvatar}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1c40f; margin: 0.5rem 0;">
+                        <div style="font-weight: bold; font-size: 1.1rem; color: #1e3c72;">${winner.name}</div>
+                        <div style="color: #3498db; font-weight: bold; font-size: 0.95rem; margin-top: 5px;"><i class="fas fa-vote-yea"></i> ${winner.votes} صوت</div>
+                    `;
+                    winnersContainer.appendChild(winnerCard);
+                }
+            });
+
+            if (!hasVotes) {
+                return alert('لم يتم التصويت لأي مرشح بعد!');
+            }
+
             document.getElementById('winnerModal').style.display = 'flex';
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            confetti({ particleCount: 180, spread: 90, origin: { y: 0.6 } });
         }
 
-        fetchCandidates();
-        setInterval(fetchCandidates, 3000);
+        // التشغيل المباشر والتحديث التلقائي المباشر كل 3 ثوانٍ
+        fetchCandidatesSilently();
+        setInterval(fetchCandidatesSilently, 3000);
     </script>
 </body>
 </html>
