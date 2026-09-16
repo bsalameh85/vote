@@ -61,7 +61,16 @@
 
         .login-card h2 {
             color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
+            font-size: 1.6rem;
+        }
+
+        .login-system-title {
+            color: var(--accent-color);
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 0.8rem;
+            white-space: nowrap;
         }
 
         .login-card input {
@@ -170,6 +179,7 @@
         <div class="login-card">
             <img src="logo.png" alt="شعار مدرسة آل البيت" class="login-logo" onerror="this.style.display='none'">
             <h2>مدرسة آل البيت</h2>
+            <div class="login-system-title">نظام التصويت للانتخابات الطلابية</div>
             <p style="color: #666; font-size: 0.9rem;">الرجاء إدخال كلمة المرور للمتابعة</p>
             <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
             <button class="btn" onclick="checkPassword()"><i class="fas fa-lock-open"></i> دخول</button>
