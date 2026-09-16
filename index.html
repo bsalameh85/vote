@@ -3,14 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المدير - Google Sheets</title>
+    <title>مدرسة آل البيت - لوحة التحكم</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --primary-color: #1e3c72; --accent-color: #3498db; --success-color: #2ecc71; --light-bg: #f8f9fa; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: var(--light-bg); color: #333; padding-bottom: 60px; }
-        header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; text-align: center; padding: 2rem 1rem; }
+        
+        /* ترويسة الصفحة مع الشعار والعنوان */
+        header { 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+            color: white; 
+            text-align: center; 
+            padding: 1.5rem 1rem; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .header-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            background: white;
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        header h1 {
+            font-size: 2rem;
+            margin-top: 5px;
+        }
+        
         .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
         .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-top: 5px solid var(--accent-color); margin-bottom: 2rem; }
         .form-group { margin-bottom: 1rem; }
@@ -31,15 +57,15 @@
         .modal-content { background: white; padding: 2.5rem; border-radius: 20px; text-align: center; max-width: 500px; width: 90%; }
         .loading { text-align: center; font-size: 1.2rem; color: #666; margin: 2rem 0; }
         
-        /* المعاينة المباشرة للصورة المرفقة */
         .image-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; margin: 10px auto; border: 2px solid var(--accent-color); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1><i class="fas fa-file-excel"></i> لوحة التحكم (متصل بـ Google Sheets)</h1>
-        <p>إدارة الانتخابات ومتابعة النتائج الحية من جدول بيانات جوجل</p>
+        <img src="logo.png" alt="شعار مدرسة آل البيت" class="header-logo" onerror="this.style.display='none'">
+        <h1>مدرسة آل البيت</h1>
+        <p>لوحة التحكم والنتائج المباشرة للانتخابات الطلابية</p>
     </header>
 
     <div class="container">
@@ -57,7 +83,6 @@
                     </div>
                 </div>
                 
-                <!-- خيار إرفاق صورة من الجهاز -->
                 <div class="form-group">
                     <label><i class="fas fa-image"></i> إرفاق صورة المرشح من الجهاز:</label>
                     <input type="file" id="candidateImageFile" accept="image/*" onchange="previewSelectedImage(event)">
@@ -95,7 +120,6 @@
         let candidates = [];
         let uploadedBase64Image = "";
 
-        // معاينة الصورة عند اختيار ملف من الجهاز
         function previewSelectedImage(event) {
             const file = event.target.files[0];
             if (file) {
@@ -149,8 +173,6 @@
 
             const name = document.getElementById('candidateName').value.trim();
             const candidateClass = document.getElementById('candidateClass').value.trim();
-            
-            // استخدام الصورة المرفقة أو الافتراضية
             const finalImage = uploadedBase64Image || defaultAvatar;
 
             const newCandidate = {
