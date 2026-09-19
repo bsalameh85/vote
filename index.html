@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدرسة آل البيت - لوحة التحكم</title>
+    <title>مدرسة آل البيت - إعلان النتائج</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -83,7 +83,6 @@
             text-align: center;
         }
 
-        /* حماية إخفاء المحتوى قبل تسجيل الدخول */
         #mainContent {
             display: none;
             flex-direction: column;
@@ -154,6 +153,7 @@
         .btn-success { background-color: var(--success-color); }
         .btn-danger { background-color: #e74c3c; }
         .btn-warning { background-color: #f39c12; color: white; }
+        .btn-info { background-color: #2980b9; color: white; }
 
         .candidates-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
         .candidate-card { background: white; border-radius: 12px; padding: 1rem; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.08); position: relative; }
@@ -175,14 +175,68 @@
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; overflow-y: auto; padding: 20px; }
         .modal-content { background: white; padding: 2rem; border-radius: 20px; text-align: center; max-width: 650px; width: 95%; max-height: 90vh; overflow-y: auto; }
+        #winnerModal .modal-content { max-width: 760px; }
         .loading { text-align: center; font-size: 1.2rem; color: #666; margin: 2rem 0; }
         
         .image-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; margin: 10px auto; border: 2px solid var(--accent-color); }
 
-        .winners-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: center; }
-        .winner-card { background: #fffdf0; border: 2px solid #f1c40f; border-radius: 15px; padding: 1rem; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .winner-badge { position: absolute; top: -12px; right: 50%; transform: translateX(50%); background: #f1c40f; color: #fff; padding: 2px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .winner-class-title { font-weight: bold; color: var(--primary-color); font-size: 1.1rem; margin-top: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px dashed #ddd; padding-bottom: 0.3rem; }
+        /* ====== عرض النتائج: كل صف دراسي في سطر أفقي واحد ====== */
+        .winners-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 1.5rem; text-align: right; }
+
+        .class-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #e3e8ee;
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .class-block-title {
+            flex: 0 0 95px;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1rem;
+            text-align: center;
+            border-left: 2px dashed #dfe4ea;
+            padding-left: 10px;
+        }
+        .class-block-cards { display: flex; flex: 1; gap: 10px; flex-wrap: wrap; }
+
+        .winner-card {
+            flex: 1 1 45%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fffdf0;
+            border: 2px solid #f1c40f;
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: right;
+        }
+        .winner-card.assistant-card { background: #f4f6f7; border-color: #bdc3c7; }
+
+        .wc-photo { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #f1c40f; flex-shrink: 0; }
+        .assistant-card .wc-photo { border-color: #95a5a6; }
+
+        .wc-badge {
+            display: inline-block;
+            background: #f1c40f;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+        }
+        .assistant-card .wc-badge { background: #95a5a6; }
+
+        .wc-name { font-weight: bold; color: #1e3c72; font-size: 1rem; }
+        .wc-votes { color: #3498db; font-weight: bold; font-size: 0.85rem; }
+        .assistant-card .wc-name { color: #2c3e50; }
+        .assistant-card .wc-votes { color: #7f8c8d; }
 
         footer {
             background: #1e3c72;
@@ -194,11 +248,136 @@
             box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
         }
         footer span { font-weight: bold; color: #f1c40f; }
+
+        /* ========================================== */
+        /* تنسيقات طباعة الفائزين والمساعدين فقط      */
+        /* ========================================== */
+
+        .print-header, .print-footer { display: none; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0.9cm; }
+
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+                display: block !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* إخفاء كل شيء ما عدا نافذة الفائزين */
+            #loginOverlay,
+            #mainContent > header,
+            #mainContent > .container,
+            #mainContent > footer,
+            #editModal,
+            #resetModal,
+            .no-print,
+            .screen-only {
+                display: none !important;
+            }
+
+            #mainContent { display: block !important; min-height: 0 !important; }
+
+            #winnerModal {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            #winnerModal .modal-content {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+
+            /* ترويسة الطباعة (الشعار + اسم المدرسة) */
+            .print-header {
+                display: block !important;
+                text-align: center;
+                border-bottom: 3px double #1e3c72;
+                padding-bottom: 7px;
+                margin-bottom: 12px;
+            }
+            .print-header .print-logo { width: 62px; height: 62px; object-fit: contain; margin-bottom: 4px; }
+            .print-header .print-school { font-size: 18pt; font-weight: bold; color: #1e3c72; }
+            .print-header .print-title { font-size: 12pt; font-weight: bold; color: #2a5298; margin-top: 2px; }
+            .print-header .print-sub { font-size: 9pt; color: #555; margin-top: 2px; }
+            .print-header .print-date { font-size: 8pt; color: #777; margin-top: 2px; }
+
+            /* سطر لكل صف دراسي */
+            .winners-grid {
+                display: block !important;
+                margin-top: 0 !important;
+            }
+
+            .class-block {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 5px 8px !important;
+                margin-bottom: 7px !important;
+                border: 1px solid #cbd5e0 !important;
+                border-radius: 8px !important;
+                box-shadow: none !important;
+                background: #fff !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .class-block-title { flex: 0 0 75px !important; font-size: 10pt !important; padding-left: 6px !important; }
+            .class-block-cards { gap: 8px !important; flex-wrap: nowrap !important; }
+
+            .winner-card {
+                flex: 1 1 0 !important;
+                gap: 7px !important;
+                padding: 4px 7px !important;
+                border-width: 1.5px !important;
+                border-radius: 8px !important;
+                background: #fffdf0 !important;
+            }
+            .winner-card.assistant-card { background: #f4f6f7 !important; border-color: #bdc3c7 !important; }
+
+            .wc-photo { width: 40px !important; height: 40px !important; border-width: 1.5px !important; }
+            .wc-badge { font-size: 7pt !important; padding: 0 6px !important; margin-bottom: 1px !important; }
+            .wc-name { font-size: 10pt !important; }
+            .wc-votes { font-size: 8pt !important; }
+
+            /* تذييل الطباعة */
+            .print-footer {
+                display: block !important;
+                margin-top: 14px;
+                padding-top: 6px;
+                border-top: 1px solid #ccc;
+                font-size: 8pt;
+                color: #555;
+                text-align: center;
+            }
+            .print-signatures {
+                display: flex;
+                justify-content: space-around;
+                margin-top: 22px;
+                font-size: 9pt;
+                color: #333;
+                font-weight: bold;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول بكلمة المرور وشعار المدرسة -->
+    <!-- شاشة تسجيل الدخول -->
     <div id="loginOverlay">
         <div class="login-card">
             <img src="logo.png" alt="شعار مدرسة آل البيت" class="login-logo" onerror="this.style.display='none'">
@@ -211,7 +390,7 @@
         </div>
     </div>
 
-    <!-- المحتوى الرئيسي للنظام -->
+    <!-- المحتوى الرئيسي -->
     <div id="mainContent">
         <header>
             <button class="logout-btn-header" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
@@ -272,12 +451,12 @@
             <div class="candidates-list" id="candidatesList"></div>
 
             <div class="finish-section">
-                <button class="btn btn-success" onclick="announceWinnerByClass()"><i class="fas fa-trophy"></i> إعلان الفائزين حسب الصفوف</button>
+                <button class="btn btn-success" onclick="announceWinnerByClass()"><i class="fas fa-trophy"></i> إعلان الفائزين والمساعدين حسب الصفوف</button>
                 <button class="btn btn-danger" onclick="openResetModal()"><i class="fas fa-redo"></i> تصفير الأصوات</button>
             </div>
         </div>
 
-        <!-- نافذة تعديل بيانات المرشح -->
+        <!-- نافذة تعديل مرشح -->
         <div class="modal" id="editModal">
             <div class="modal-content">
                 <h2 style="color: var(--primary-color); margin-bottom: 1rem;"><i class="fas fa-edit"></i> تعديل بيانات المرشح</h2>
@@ -318,7 +497,7 @@
             </div>
         </div>
 
-        <!-- نافذة تأكيد تصفير الأصوات المشفرة بكلمة المرور -->
+        <!-- نافذة تأكيد التصفير -->
         <div class="modal" id="resetModal">
             <div class="modal-content" style="max-width: 420px;">
                 <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 0.5rem;"><i class="fas fa-shield-alt"></i></div>
@@ -335,16 +514,39 @@
             </div>
         </div>
 
-        <!-- نافذة إعلان الفائزين -->
+        <!-- نافذة إعلان الفائزين والمساعدين (الوحيدة المطبوعة) -->
         <div class="modal" id="winnerModal">
             <div class="modal-content">
-                <div style="font-size: 3.5rem; color: #f1c40f;"><i class="fas fa-crown"></i></div>
-                <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">قائمة الفائزين بالانتخابات الطلابية</h2>
-                <p style="color: #666; font-size: 0.95rem;">الفائز بالأعلى تصويتاً عن كل صف دراسي</p>
+
+                <!-- ترويسة الطباعة: تظهر في الورقة المطبوعة فقط -->
+                <div class="print-header">
+                    <img src="logo.png" class="print-logo" alt="شعار مدرسة آل البيت" onerror="this.style.display='none'">
+                    <div class="print-school">مدرسة آل البيت</div>
+                    <div class="print-title">نتائج الانتخابات الطلابية</div>
+                    <div class="print-sub">الرئيس (المركز الأول) والمساعد (المركز الثاني) لكل صف دراسي</div>
+                    <div class="print-date" id="printDate"></div>
+                </div>
+
+                <div class="screen-only" style="font-size: 3.5rem; color: #f1c40f;"><i class="fas fa-crown"></i></div>
+                <h2 class="screen-only" style="color: var(--primary-color); margin-bottom: 0.5rem;">قائمة الفائزين والمساعدين بالانتخابات</h2>
+                <p class="screen-only" style="color: #666; font-size: 0.95rem;">الرئيس (المركز الأول) والمساعد (المركز الثاني) لكل صف دراسي</p>
 
                 <div class="winners-grid" id="winnersContainer"></div>
 
-                <button class="btn" style="margin-top: 2rem;" onclick="document.getElementById('winnerModal').style.display='none'">إغلاق</button>
+                <!-- تذييل يظهر في الورقة المطبوعة فقط -->
+                <div class="print-footer">
+                    <div class="print-signatures">
+                        <div>معلمة المهارات الرقمية: ربى ناصر</div>
+                        <div>مديرة المدرسة: منال صالح</div>
+                    </div>
+                    <div style="margin-top: 18px;">توقيع المديرة: ..............................</div>
+                </div>
+
+                <!-- أزرار الطباعة والإغلاق (مخفية أثناء الطباعة عبر no-print) -->
+                <div style="display: flex; gap: 10px; margin-top: 2rem;" class="no-print">
+                    <button class="btn btn-info" onclick="window.print()"><i class="fas fa-print"></i> طباعة النتائج</button>
+                    <button class="btn" style="background: #7f8c8d;" onclick="document.getElementById('winnerModal').style.display='none'">إغلاق</button>
+                </div>
             </div>
         </div>
 
@@ -354,10 +556,7 @@
     </div>
 
     <script>
-        // -------------------------------------------------------------
-        // 1. نظام الحماية وتسجيل الدخول والخروج مع حفظ الجلسة
-        // -------------------------------------------------------------
-        const ADMIN_PASSWORD = "2026"; // كلمة المرور الافتراضية
+        const ADMIN_PASSWORD = "2026";
         let syncInterval = null;
 
         function checkPassword() {
@@ -416,13 +615,12 @@
             }
         });
 
-        // -------------------------------------------------------------
-        // 2. كود لوحة التحكم والتواصل السريع مع Google Sheets
-        // -------------------------------------------------------------
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxTYtQqY97iizNUvKjYqwLzgokZMnprO9Q_w8RYYPZFecQCFkDkq769A1XqmSUWfdPC/exec";
         
         const DEFAULT_MALE_AVATAR = "https://cdn-icons-png.flaticon.com/512/4140/4140048.png";
         const DEFAULT_FEMALE_AVATAR = "https://cdn-icons-png.flaticon.com/512/4140/4140047.png";
+
+        const CLASS_ORDER = ["الصف الرابع", "الصف الخامس", "الصف السادس", "الصف السابع", "الصف الثامن", "الصف التاسع"];
 
         let candidates = [];
         let isEditing = false;
@@ -514,7 +712,6 @@
             });
         }
 
-        // إضافة مرشح جديدة فوراً
         document.getElementById('addCandidateForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -620,9 +817,6 @@
             }
         }
 
-        // -------------------------------------------------------------
-        // 3. نافذة تصفير الأصوات بكلمة مرور مشفرة (Password Input)
-        // -------------------------------------------------------------
         function openResetModal() {
             document.getElementById('resetPasswordInput').value = '';
             document.getElementById('resetPasswordError').style.display = 'none';
@@ -656,7 +850,24 @@
             if (e.key === 'Enter') confirmResetVotes();
         });
 
-        // دالة إعلان الفائزين حسب الصفوف مع التعامل العدلي مع حالة التعادل
+        /* بناء بطاقة مرشح أفقية (فائز أو مساعد) */
+        function buildResultCard(person, role, badgeText) {
+            const gender = person.gender || 'male';
+            const avatar = person.image || getDefaultAvatar(gender);
+
+            const card = document.createElement('div');
+            card.className = role === 'assistant' ? 'winner-card assistant-card' : 'winner-card';
+            card.innerHTML = `
+                <img src="${avatar}" class="wc-photo" alt="${person.name}">
+                <div class="wc-info">
+                    <div class="wc-badge"><i class="fas ${role === 'assistant' ? 'fa-medal' : 'fa-crown'}"></i> ${badgeText}</div>
+                    <div class="wc-name">${person.name}</div>
+                    <div class="wc-votes"><i class="fas fa-vote-yea"></i> ${person.votes} صوت</div>
+                </div>
+            `;
+            return card;
+        }
+
         function announceWinnerByClass() {
             if (candidates.length === 0) return alert('لا يوجد مرشحون!');
 
@@ -671,41 +882,55 @@
             winnersContainer.innerHTML = '';
             let hasVotes = false;
 
-            Object.keys(groupedByClass).forEach(className => {
-                const classCandidates = groupedByClass[className];
-                const maxVotes = Math.max(...classCandidates.map(c => c.votes || 0));
+            Object.keys(groupedByClass)
+                .sort((a, b) => CLASS_ORDER.indexOf(a) - CLASS_ORDER.indexOf(b))
+                .forEach(className => {
+                    const classCandidates = groupedByClass[className]
+                        .filter(c => (c.votes || 0) > 0)
+                        .sort((a, b) => (b.votes || 0) - (a.votes || 0));
 
-                if (maxVotes > 0) {
+                    if (classCandidates.length === 0) return;
                     hasVotes = true;
 
-                    const topCandidates = classCandidates.filter(c => (c.votes || 0) === maxVotes);
+                    const uniqueVotes = [...new Set(classCandidates.map(c => c.votes))].sort((a, b) => b - a);
+                    const firstPlaceVotes = uniqueVotes[0];
+                    const secondPlaceVotes = uniqueVotes[1];
 
-                    topCandidates.forEach(winner => {
-                        const gender = winner.gender || 'male';
-                        const avatar = winner.image || getDefaultAvatar(gender);
-                        
-                        const badgeText = topCandidates.length > 1 ? 'تعادل (الأول)' : 'الأول';
-                        const badgeStyle = topCandidates.length > 1 ? 'background: #e67e22;' : '';
+                    const winners = classCandidates.filter(c => c.votes === firstPlaceVotes);
+                    const assistants = secondPlaceVotes !== undefined ? classCandidates.filter(c => c.votes === secondPlaceVotes) : [];
 
-                        const winnerCard = document.createElement('div');
-                        winnerCard.className = 'winner-card';
-                        winnerCard.innerHTML = `
-                            <div class="winner-badge" style="${badgeStyle}">
-                                <i class="fas fa-medal"></i> ${badgeText}
-                            </div>
-                            <div class="winner-class-title">${className}</div>
-                            <img src="${avatar}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1c40f; margin: 0.5rem 0;">
-                            <div style="font-weight: bold; font-size: 1.1rem; color: #1e3c72;">${winner.name}</div>
-                            <div style="color: #3498db; font-weight: bold; font-size: 0.95rem; margin-top: 5px;"><i class="fas fa-vote-yea"></i> ${winner.votes} صوت</div>
-                        `;
-                        winnersContainer.appendChild(winnerCard);
+                    /* سطر مستقل لكل صف دراسي */
+                    const block = document.createElement('div');
+                    block.className = 'class-block';
+
+                    const title = document.createElement('div');
+                    title.className = 'class-block-title';
+                    title.textContent = className;
+                    block.appendChild(title);
+
+                    const cardsWrap = document.createElement('div');
+                    cardsWrap.className = 'class-block-cards';
+
+                    winners.forEach(w => {
+                        const badgeText = winners.length > 1 ? 'الأول (تعادل)' : 'الرئيس';
+                        cardsWrap.appendChild(buildResultCard(w, 'winner', badgeText));
                     });
-                }
-            });
+
+                    assistants.forEach(a => {
+                        const badgeText = assistants.length > 1 ? 'المساعد (تعادل)' : 'المساعد';
+                        cardsWrap.appendChild(buildResultCard(a, 'assistant', badgeText));
+                    });
+
+                    block.appendChild(cardsWrap);
+                    winnersContainer.appendChild(block);
+                });
 
             if (!hasVotes) {
                 return alert('لم يتم التصويت لأي مرشح بعد!');
             }
+
+            document.getElementById('printDate').textContent =
+                "تاريخ الإعلان: " + new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 
             document.getElementById('winnerModal').style.display = 'flex';
             confetti({ particleCount: 180, spread: 90, origin: { y: 0.6 } });
